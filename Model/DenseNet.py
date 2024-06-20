@@ -20,7 +20,7 @@ class Bottleneck(nn.Module):
         out = self.relu(out)
         out = self.conv2(out)
         return torch.cat((x, out), 1)
-    
+
 class Transition(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -32,7 +32,7 @@ class Transition(nn.Module):
 
     def forward(self, x):
         return self.downsample(x)
-    
+
 class DenseNet(nn.Module):
     def __init__(self, block, nblocks, growth_rate=12, reduction=0.5, num_classes=1000):
         super().__init__()
@@ -70,15 +70,16 @@ class DenseNet(nn.Module):
         out = self.avgpool(out)
         out = out.view(out.size()[0], -1)
         out = self.fc(out)
-        return out
-    
+        probas = F.softmax(out, dim=1)
+        return out, probas
+
     def make_layer(self, block, in_channels, nblocks):
         dense_block = nn.Sequential()
         for i in range(nblocks):
             dense_block.add_module(f'bottle_neck_layer_{i}', block(in_channels, self.growth_rate))
             in_channels += self.growth_rate
         return dense_block
-    
+
 def densenet121():
     return DenseNet(Bottleneck, [6, 12, 24, 16], growth_rate=32)
 
@@ -90,10 +91,3 @@ def densenet201():
 
 def densenet161():
     return DenseNet(Bottleneck, [6, 12, 36, 24], growth_rate=48)
-
-if __name__ == '__main__':
-    x = torch.randn(2, 3, 223, 224)
-    model = densenet121()
-    y = model(x)
-    print(y.shape)
-    
