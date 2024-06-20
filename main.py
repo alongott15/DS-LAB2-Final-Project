@@ -60,7 +60,7 @@ test_loader = DataLoader(dataset=test_dataset,
 
 start_time = time.time()
 
-model = densenet121()
+model = DenseNet.densenet121()
 model.to(DEVICE)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)  
@@ -126,8 +126,8 @@ plt.xlabel('Iteration')
 plt.legend()
 plt.show()
 
-plt.plot(np.arange(1, NUM_EPOCHS+1), train_acc_list, label='Training')
-plt.plot(np.arange(1, NUM_EPOCHS+1), valid_acc_list, label='Validation')
+plt.plot(np.arange(1, NUM_EPOCHS+1), [t.cpu().numpy() for t in train_acc_list], label='Training')
+plt.plot(np.arange(1, NUM_EPOCHS+1), [v.cpu().numpy() for v in valid_acc_list], label='Validation')
 
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
