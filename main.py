@@ -11,12 +11,13 @@ from torch.utils.data.dataset import Subset
 from torchvision import datasets
 from torchvision import transforms
 import matplotlib.pyplot as plt
-%matplotlib inline
 from PIL import Image
+
+MODEL = 'DenseNet'
 
 # Hyperparameters
 RANDOM_SEED = 1
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.001 if MODEL == 'DenseNet' else 0.01
 BATCH_SIZE = 128
 NUM_EPOCHS = 20
 
@@ -60,13 +61,27 @@ test_loader = DataLoader(dataset=test_dataset,
 
 start_time = time.time()
 
-model = DenseNet.densenet121()
+model = DenseNet.densenet121() if MODEL == 'DenseNet' else ResNet.resnet101()
 model.to(DEVICE)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)  
 cost_list = []
 train_acc_list, valid_acc_list = [], []
 
+def compute_acc(model, data_loader, device):
+    correct_pred, num_examples = 0, 0
+    model.eval()
+    for i, (features, targets) in enumerate(data_loader):
+            
+        features = features.to(device)
+        targets = targets.to(device)
+
+        logits, probas = model(features)
+        _, predicted_labels = torch.max(probas, 1)
+        num_examples += targets.size(0)
+        assert predicted_labels.size() == targets.size()
+        correct_pred += (predicted_labels == targets).sum()
+    return correct_pred.float()/num_examples * 100
 
 for epoch in range(NUM_EPOCHS):
     
@@ -95,8 +110,6 @@ for epoch in range(NUM_EPOCHS):
             print (f'Epoch: {epoch+1:03d}/{NUM_EPOCHS:03d} | '
                    f'Batch {batch_idx:03d}/{len(train_loader):03d} |' 
                    f' Cost: {cost:.4f}')
-
-        
 
     model.eval()
     with torch.set_grad_enabled(False): # save memory during inference

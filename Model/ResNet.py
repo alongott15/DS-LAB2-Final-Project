@@ -15,6 +15,7 @@
 
 import torch
 from torch import nn 
+import torch.nn.functional as F
 
 class BasicBlock(nn.Module):
     # 2 3x3 Conv Layers
@@ -128,7 +129,8 @@ class ResNet(nn.Module):
         out = self.avgpool(out)
         out = out.flatten(1)
         out = self.fc(out)
-        return out
+        probas = F.softmax(out, dim=1)
+        return out, probas
     
 def resnet18(num_classes=1000):
     return ResNet(BasicBlock, [2, 2, 2, 2], num_classes)
