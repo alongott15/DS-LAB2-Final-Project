@@ -31,7 +31,6 @@ GRAYSCALE = False
 train_indices = torch.arange(0, 48000)
 valid_indices = torch.arange(48000, 50000)
 
-
 train_and_valid = datasets.CIFAR10(root='data', 
                                    train=True, 
                                    transform=transforms.ToTensor(),
@@ -83,6 +82,8 @@ def compute_acc(model, data_loader, device):
         correct_pred += (predicted_labels == targets).sum()
     return correct_pred.float()/num_examples * 100
 
+best_valid_acc = 0.0  # To keep track of the best validation accuracy
+
 for epoch in range(NUM_EPOCHS):
     
     model.train()
@@ -92,7 +93,6 @@ for epoch in range(NUM_EPOCHS):
         targets = targets.to(DEVICE)
             
         ### FORWARD AND BACK PROP
-        #print(model(features))
         logits, probas = model(features)
         cost = F.cross_entropy(logits, targets)
         optimizer.zero_grad()
@@ -123,7 +123,14 @@ for epoch in range(NUM_EPOCHS):
         train_acc_list.append(train_acc)
         valid_acc_list.append(valid_acc)
         
-    elapsed = (time.time() - start_time) / 60
+        # Save the model checkpoint only if the validation accuracy is improved
+        if valid_acc > best_valid_acc:
+            best_valid_acc = valid_acc
+            checkpoint_path = f"best_model_epoch_{epoch+1}.pth"
+            torch.save(model.state_dict(), checkpoint_path)
+            print(f'New best model checkpoint saved at {checkpoint_path}')
+        
+    elapsed = (time.time() - start_time)/60
     print(f'Time elapsed: {elapsed:.2f} min')
   
 elapsed = (time.time() - start_time)/60
