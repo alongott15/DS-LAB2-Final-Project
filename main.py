@@ -123,7 +123,7 @@ for epoch in range(NUM_EPOCHS):
         train_acc_list.append(train_acc)
         valid_acc_list.append(valid_acc)
         
-    elapsed = (time.time() - start_time)/60
+    elapsed = (time.time() - start_time) / 60
     print(f'Time elapsed: {elapsed:.2f} min')
   
 elapsed = (time.time() - start_time)/60
